@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-type emailMessage = {
+interface IEmailMessage {
   mail_from: string;
   mail_timestamp: number;
   mail_read: number;
@@ -16,10 +16,10 @@ type emailMessage = {
   source_mail_id: number;
   mail_body: string;
   size: number;
-};
+}
 
 export class Email {
-  static BASE_URL = `http://api.guerrillamail.com/ajax.php`;
+  private BASE_URL = `http://api.guerrillamail.com/ajax.php`;
 
   private emailAddress = '';
   private token = '';
@@ -30,11 +30,11 @@ export class Email {
    * createEmailAccount() -> 'dbyziheu@guerrillamailblock.com'
    * createEmailAccount('Faisal') -> 'Faisal@guerrillamailblock.com'
    */
-  async createEmailAccount(customEmailAddress = '') {
+  public async createEmailAccount(customEmailAddress = '') {
     try {
       const { data } = await axios({
         method: 'GET',
-        url: `${Email.BASE_URL}?f=get_email_address`,
+        url: `${this.BASE_URL}?f=get_email_address`,
       });
 
       const { sid_token: emailToken, email_addr: generatedEmailAddress } = data;
@@ -42,12 +42,12 @@ export class Email {
       this.emailAddress = generatedEmailAddress;
 
       if (customEmailAddress) {
-        const { data } = await axios({
+        const { data: customEmailAddressData } = await axios({
           method: 'GET',
-          url: `${Email.BASE_URL}?f=set_email_user&email_user=${customEmailAddress}&sid_token=${this.token}`,
+          url: `${this.BASE_URL}?f=set_email_user&email_user=${customEmailAddress}&sid_token=${this.token}`,
         });
 
-        const { email_addr: createdCustomEmailAddress } = data;
+        const { email_addr: createdCustomEmailAddress } = customEmailAddressData;
         this.emailAddress = createdCustomEmailAddress;
       }
 
@@ -61,18 +61,19 @@ export class Email {
    * Gets a maximum of 10 emails from the specified offset.
    * Offset of 0 will fetch a list of the first 10 emails, offset of 10 will fetch a list of the next 10, and so on.
    */
-  async getLatestEmails(offset = 0) {
-    if (!this.token)
+  public async getLatestEmails(offset = 0) {
+    if (!this.token) {
       throw new Error(
         'No token for this email. Maybe you need to call createEmailAccount() to create the account first?',
       );
+    }
 
     try {
       const { data } = await axios({
         method: 'GET',
-        url: `${Email.BASE_URL}?f=get_email_list&offset=${offset}&sid_token=${this.token}`,
+        url: `${this.BASE_URL}?f=get_email_list&offset=${offset}&sid_token=${this.token}`,
       });
-      return data.list as [emailMessage];
+      return data.list as [IEmailMessage];
     } catch (error) {
       throw new Error(`Error while refreshingInbox: ${error}`);
     }
@@ -81,19 +82,22 @@ export class Email {
   /**
    * Gets a detailed information about a single email using the emailId.
    */
-  async getEmailDetails(emailId = '') {
-    if (!this.token)
+  public async getEmailDetails(emailId = '') {
+    if (!this.token) {
       throw new Error(
         'No token for this email. Maybe you need to call createEmailAccount() to create the account first?',
       );
-    if (!emailId) throw new Error('No email ID is provided.');
+    }
+    if (!emailId) {
+      throw new Error('No email ID is provided.');
+    }
 
     try {
       const { data } = await axios({
         method: 'GET',
-        url: `${Email.BASE_URL}?f=fetch_email&email_id=${emailId}&sid_token=${this.token}`,
+        url: `${this.BASE_URL}?f=fetch_email&email_id=${emailId}&sid_token=${this.token}`,
       });
-      return data as emailMessage;
+      return data as IEmailMessage;
     } catch (error) {
       throw new Error(`Error while getEmail: ${error}`);
     }
