@@ -33,10 +33,10 @@ import { Email } from 'disposable-guerrillamail';
   .
 
   // Check your inbox anytime.
-  const emails = tempEmail.getLatestEmails(); // [emails]
+  const emails = await tempEmail.getLatestEmails(); // [emails]
 
   // Check details of a certain email if you know its id.
-  const email = tempEmail.getEmailDetails('1'); // email
+  const email = await tempEmail.getEmailDetails('1'); // email
 
   .
   .
